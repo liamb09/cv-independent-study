@@ -3,8 +3,8 @@ import sys
 import math
 from binary_img_utils import Binary_Image
 
-binary_image = Binary_Image("images/tools3.jpg")
-binary_image.to_binary(230)
+binary_image = Binary_Image("images/tools.jpg")
+binary_image.to_binary(245)
 
 # area = binary_image.area()
 # print("Area:", area)
@@ -20,4 +20,4 @@ binary_image.segment()
 
 binary_image.write_image("binary_image.png")
 
-# tools3.jpg -- 245
+# tools.jpg -- 245
