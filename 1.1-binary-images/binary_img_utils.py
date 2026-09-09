@@ -4,8 +4,9 @@ from PIL import Image, ImageDraw
 
 class Binary_Image:
     def __init__(self, path):
-        self.img = Image.open(path)
+        self.img = Image.open(path).convert("RGB")
         self.pixel_grid = np.array(self.img)
+        print(self.pixel_grid.shape)
         self.height, self.width, _ = self.pixel_grid.shape
         self.orientation = None
 
@@ -63,7 +64,8 @@ class Binary_Image:
 
         return a, b, c
     
-    def draw_fullscreen_line(self, draw, p1, p2) :
+    def draw_fullscreen_line(self, draw, p1, p2):
+        # numpy array and ImageDraw use inverted dimension ordering
         draw.line([
             (p1[1], p1[0]),
             (p1[1] + (p2[1] - p1[1])*10, p1[0] + (p2[0] - p1[0])*10)
@@ -76,7 +78,73 @@ class Binary_Image:
     def write_image (self, new_name):
         com_x, com_y = self.com()
         newimg = Image.fromarray(self.pixel_grid)
-        draw = ImageDraw.Draw(newimg)
-        # numpy array and ImageDraw use inverted dimension ordering
-        self.draw_fullscreen_line(draw, (com_x, com_y), (com_x+100, com_y + (100)*math.tan(self.orientation)))
+        # draw = ImageDraw.Draw(newimg)
+        # self.draw_fullscreen_line(draw, (com_x, com_y), (com_x+100, com_y + (100)*math.tan(self.orientation)))
         newimg.save(new_name)
+    
+    def sample_area (self, segmented_grid, row, col):
+        # left, topleft, top
+        l = tl = t = "X"
+        if row == 0:
+            if col != 0:
+                l = segmented_grid[-1][-1]
+        else:
+            t = segmented_grid[-2][col]
+            # self.pixel_grid(row-1, col)
+            if col != 0:
+                l = segmented_grid[-1][-1]
+                # self.pixel_grid(row, col-1)
+                tl = segmented_grid[-2][col-1]
+                # self.pixel_grid(row-1, col-1)
+        return l, tl, t
+    
+    def find_root (self, equivalence_table, start):
+        if len(equivalence_table[start]) != 0:
+            return self.find_root(equivalence_table, equivalence_table[start][0])
+        return start
+
+    def segment (self):
+        segmented_grid = []
+        equivalence_table = {}
+        next_index = 0
+
+        colors = [[230, 25, 75], [60, 180, 75], [255, 225, 25], [0, 130, 200], [245, 130, 48], [145, 30, 180], [70, 240, 240], [240, 50, 230], [210, 245, 60], [250, 190, 212], [0, 128, 128], [220, 190, 255], [170, 110, 40], [255, 250, 200], [128, 0, 0], [170, 255, 195], [128, 128, 0], [255, 215, 180], [0, 0, 128], [128, 128, 128], [255, 255, 255], [0, 0, 0]]
+        for i in range(self.height):
+            segmented_grid.append([])
+            for j in range(self.width):
+                # if background
+                if not np.any(self.pixel_grid[i, j]):
+                    segmented_grid[-1].append("X")
+                else:
+                    l, tl, t = self.sample_area(segmented_grid, i, j)
+                    if l == tl == t == "X":
+                        new_label = chr(65 + next_index)
+                        next_index += 1
+                        equivalence_table[new_label] = []
+                        segmented_grid[-1].append(new_label)
+                    elif tl != "X":
+                        segmented_grid[-1].append(tl)
+                    elif tl == t == "X" and l != "X":
+                        segmented_grid[-1].append(l)
+                    elif tl == l == "X" and t != "X":
+                        segmented_grid[-1].append(t)
+                    elif tl == "X" and l != "X" and t != "X" and t != l:
+                        equivalence_table[l].append(t)
+                        segmented_grid[-1].append(l)
+        
+        # print(segmented_grid)
+
+        for i in range(self.height):
+            for j in range(self.width):
+                if segmented_grid[i][j] != "X":
+                    segmented_grid[i][j] = self.find_root(equivalence_table, segmented_grid[i][j])
+                if ord(segmented_grid[i][j]) - 65 < len(colors):
+                    segmented_grid[i][j] = colors[ord(segmented_grid[i][j]) - 65]
+                else:
+                    segmented_grid[i][j] = [0, 0, 0]
+    
+        # print(equivalence_table)
+
+        newarr = np.array(segmented_grid, dtype=np.uint8)
+        newimg = Image.fromarray(newarr)
+        newimg.save("segmented.bmp")
