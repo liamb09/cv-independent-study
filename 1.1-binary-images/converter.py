@@ -3,7 +3,7 @@ import sys
 import math
 from binary_img_utils import Binary_Image
 
-binary_image = Binary_Image("images/tools.jpg")
+binary_image = Binary_Image("images/tool_cropped.jpg")
 binary_image.to_binary(245)
 
 # area = binary_image.area()
