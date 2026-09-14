@@ -7,7 +7,6 @@ class Binary_Image:
     def __init__(self, path):
         self.img = Image.open(path).convert("RGB")
         self.pixel_grid = np.array(self.img)
-        print(self.pixel_grid.shape)
         self.height, self.width, _ = self.pixel_grid.shape
         self.orientation = None
 
@@ -112,12 +111,68 @@ class Binary_Image:
                 equivalence_table[i] = root
             return root
 
+    # def segment (self):
+    #     segmented_grid = []
+    #     equivalence_table = {}
+    #     next_index = 1
+
+    #     # colors = [[230, 25, 75], [60, 180, 75], [255, 225, 25], [0, 130, 200], [245, 130, 48], [145, 30, 180], [70, 240, 240], [240, 50, 230], [210, 245, 60], [250, 190, 212], [0, 128, 128], [220, 190, 255], [170, 110, 40], [255, 250, 200], [128, 0, 0], [170, 255, 195], [128, 128, 0], [255, 215, 180], [0, 0, 128], [128, 128, 128], [255, 255, 255]]
+    #     for i in range(self.height):
+    #         segmented_grid.append([])
+    #         for j in range(self.width):
+    #             # if background
+    #             if not np.any(self.pixel_grid[i, j]):
+    #                 segmented_grid[-1].append(0)
+    #             else:
+    #                 l, tl, t = self.sample_area(segmented_grid, i, j)
+    #                 if l == tl == t == 0:
+    #                     equivalence_table[next_index] = []
+    #                     segmented_grid[-1].append(next_index)
+    #                     next_index += 1
+    #                 elif tl != 0:
+    #                     segmented_grid[-1].append(tl)
+    #                 elif tl == t == 0 and l != 0:
+    #                     segmented_grid[-1].append(l)
+    #                 elif tl == l == 0 and t != 0:
+    #                     segmented_grid[-1].append(t)
+    #                 elif l != 0 and t != 0:
+    #                     if t != l:
+    #                         # if equivalence_table[min(l,t)] == []:
+    #                         equivalence_table[max(l,t)].append(min(l,t))
+    #                         # else:
+    #                             # equivalence_table[max(l,t)] = equivalence_table[min(l,t)]
+    #                     segmented_grid[-1].append(l)
+    #     # print(len(equivalence_table))
+        
+    #     print(equivalence_table)
+    #     for [key, val] in equivalence_table.items():
+    #         equivalence_table[key] = self.find_root(equivalence_table, key)
+    #     print(equivalence_table)
+
+    #     for [key, val] in equivalence_table.items():
+    #         if val == []:
+    #             print(key)
+
+    #     # for i in range(self.height):
+    #     #     # if len(segmented_grid[i]) != 500:
+    #     #     #     print(segmented_grid[i])
+    #     #     for j in range(self.width):
+    #     #         if segmented_grid[i][j] != 0:
+    #     #             segmented_grid[i][j] = colors[uniques.index(equivalence_table[segmented_grid[i][j]][0])]
+    #     #         else:
+    #     #             segmented_grid[i][j] = [0, 0, 0]
+
+
+    #     # newarr = np.array(segmented_grid, dtype=np.uint8)
+    #     # newimg = Image.fromarray(newarr)
+    #     # newimg.save("segmented.bmp")
+
     def segment (self):
         segmented_grid = []
         equivalence_table = {}
         next_index = 1
 
-        # colors = [[230, 25, 75], [60, 180, 75], [255, 225, 25], [0, 130, 200], [245, 130, 48], [145, 30, 180], [70, 240, 240], [240, 50, 230], [210, 245, 60], [250, 190, 212], [0, 128, 128], [220, 190, 255], [170, 110, 40], [255, 250, 200], [128, 0, 0], [170, 255, 195], [128, 128, 0], [255, 215, 180], [0, 0, 128], [128, 128, 128], [255, 255, 255]]
+        colors = [[230, 25, 75], [60, 180, 75], [255, 225, 25], [0, 130, 200], [245, 130, 48], [145, 30, 180], [70, 240, 240], [240, 50, 230], [210, 245, 60], [250, 190, 212], [0, 128, 128], [220, 190, 255], [170, 110, 40], [255, 250, 200], [128, 0, 0], [170, 255, 195], [128, 128, 0], [255, 215, 180], [0, 0, 128], [128, 128, 128], [255, 255, 255]]
         for i in range(self.height):
             segmented_grid.append([])
             for j in range(self.width):
@@ -136,34 +191,40 @@ class Binary_Image:
                         segmented_grid[-1].append(l)
                     elif tl == l == 0 and t != 0:
                         segmented_grid[-1].append(t)
-                    elif tl == 0 and l != 0 and t != 0:
+                    elif l != 0 and t != 0:
                         if t != l:
-                            # if equivalence_table[min(l,t)] == []:
-                            equivalence_table[max(l,t)].append(min(l,t))
-                            # else:
-                                # equivalence_table[max(l,t)] = equivalence_table[min(l,t)]
+                            equivalence_table[l].append(t)
                         segmented_grid[-1].append(l)
-        # print(len(equivalence_table))
-        
-        print(equivalence_table)
+
+        print(list(equivalence_table.items())[0:3])
         for [key, val] in equivalence_table.items():
-            equivalence_table[key] = self.find_root(equivalence_table, key)
-        print(equivalence_table)
+            print(key, end=" ")
+            equivalence_table[key] = [self.find_root(equivalence_table, key)]
+            print(equivalence_table[key])
 
+        uniques = []
         for [key, val] in equivalence_table.items():
-            if val == []:
-                print(key)
+            if val[0] not in uniques:
+                uniques.append(val[0])
+        print(uniques, len(uniques))
 
-        # for i in range(self.height):
-        #     # if len(segmented_grid[i]) != 500:
-        #     #     print(segmented_grid[i])
-        #     for j in range(self.width):
-        #         if segmented_grid[i][j] != 0:
-        #             segmented_grid[i][j] = colors[uniques.index(equivalence_table[segmented_grid[i][j]][0])]
-        #         else:
-        #             segmented_grid[i][j] = [0, 0, 0]
+        colors = [[
+            random.randint(50, 200),
+            random.randint(50, 200),
+            random.randint(50, 200)
+        ] for _ in range(len(uniques))]
 
+        for i in range(self.height):
+            # if len(segmented_grid[i]) != 500:
+            #     print(segmented_grid[i])
+            for j in range(self.width):
+                if segmented_grid[i][j] != 0:
+                    segmented_grid[i][j] = colors[uniques.index(equivalence_table[segmented_grid[i][j]][0])]
+                else:
+                    segmented_grid[i][j] = [0, 0, 0]
+    
+        # print(equivalence_table)
 
-        # newarr = np.array(segmented_grid, dtype=np.uint8)
-        # newimg = Image.fromarray(newarr)
-        # newimg.save("segmented.bmp")
+        newarr = np.array(segmented_grid, dtype=np.uint8)
+        newimg = Image.fromarray(newarr)
+        newimg.save("segmented.bmp")
