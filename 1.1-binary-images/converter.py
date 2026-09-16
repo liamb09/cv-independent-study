@@ -10,14 +10,15 @@ area = binary_image.area()
 print("Area:", area)
 
 com_x, com_y = binary_image.com()
-print(com_x, com_y)
+print("COM:", com_x, com_y)
 
 binary_image.add_dot(com_x, com_y)
 
 binary_image.second_moments()
 
-# binary_image.segment()
+binary_image.segment()
 
-binary_image.write_image("binary_image.png")
+binary_image.write_image("binary_image.png", True)
 
 # tools.jpg -- 245
+# ../images/spatula-rotated.jpg -- 90
