@@ -78,8 +78,8 @@ class Binary_Image:
     def write_image (self, new_name):
         com_x, com_y = self.com()
         newimg = Image.fromarray(self.pixel_grid)
-        # draw = ImageDraw.Draw(newimg)
-        # self.draw_fullscreen_line(draw, (com_x, com_y), (com_x+100, com_y + (100)*math.tan(self.orientation)))
+        draw = ImageDraw.Draw(newimg)
+        self.draw_fullscreen_line(draw, (com_x, com_y), (com_x+100, com_y + (100)*math.tan(self.orientation)))
         newimg.save(new_name)
     
     def sample_area (self, segmented_grid, row, col):
