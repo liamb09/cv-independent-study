@@ -1,23 +1,16 @@
 import math
-
-def avg_pixel_value (pixel_grid):
-    pixel_sum = (0,0,0)
-
-    for row in pixel_grid:
-        for col in row:
-            pixel_sum += col
-    
-    return pixel_sum / (len(pixel_grid) * len(pixel_grid[0]))
+import cv2
+import numpy as np
 
 def apply_kernel_to_point (pixel_grid, kernel, center_x, center_y):
-    sum = [0, 0, 0]
-    for row in range(-math.floor(len(kernel)/2), math.floor(len(kernel)/2)+1):
+    sum = np.array([0, 0, 0], dtype=np.float32)
+    for row in range(len(kernel)):
         if center_y+row < 0 or center_y+row >= len(pixel_grid):
             continue
-        for col in range(-math.floor(len(kernel[0])/2), math.floor(len(kernel[0])/2)+1):
+        for col in range(len(kernel[0])):
             if center_x+col < 0 or center_x+col >= len(pixel_grid[0]):
                 continue
-            sum += pixel_grid[center_y+row][center_x+col] * kernel[row][col]
+            sum += pixel_grid[center_y+row-math.floor(len(kernel)/2)][center_x+col-math.floor(len(kernel[0])/2)] * kernel[row][col]
             # if center_y == 1 and center_x == 1:
             #     print(pixel_grid[center_y+row][center_x+col], kernel[row][col])
             #     print("       ", sum)
@@ -39,18 +32,24 @@ def gaussian (pixel_grid, kernel_size):
     hor_kernel = [[0 for i in range(kernel_size)]]
     ver_kernel = [[0] for i in range(kernel_size)]
 
-    print(hor_kernel, "\n", ver_kernel)
+    # print(hor_kernel, "\n", ver_kernel)
 
     for i in range(kernel_size):
         val = math.e ** (-0.5 * ((i - math.floor(kernel_size/2))**2) / variance)
-        print(val)
-        hor_kernel[0][i] = val
+        # print(val)
+        hor_kernel[0][i] = val / (2 * math.pi * variance)
         ver_kernel[i][0] = val
+    
+    hor_kernel = np.array(hor_kernel, dtype=np.float32)
+    ver_kernel = np.array(ver_kernel, dtype=np.float32)
+    # print(hor_kernel, "\n", ver_kernel)
     
     pixel_grid = apply_kernel_to_grid(pixel_grid, hor_kernel)
     pixel_grid = apply_kernel_to_grid(pixel_grid, ver_kernel)
+    # pixel_grid = cv2.filter2D(pixel_grid, -1, hor_kernel)
+    # pixel_grid = cv2.filter2D(pixel_grid, -1, ver_kernel)
     
-    pixel_grid = pixel_grid * 1 / (2 * math.pi * variance)
+    # pixel_grid = pixel_grid * 1 / (2 * math.pi * variance)
 
     # avg_pixel = avg_pixel_value(pixel_grid)
 
