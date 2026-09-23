@@ -5,10 +5,10 @@ import numpy as np
 def apply_kernel_to_point (pixel_grid, kernel, center_x, center_y):
     sum = np.array([0, 0, 0], dtype=np.float32)
     for row in range(len(kernel)):
-        if center_y+row < 0 or center_y+row >= len(pixel_grid):
+        if center_y+row-math.floor(len(kernel)/2) < 0 or center_y+row-math.floor(len(kernel)/2) >= len(pixel_grid):
             continue
         for col in range(len(kernel[0])):
-            if center_x+col < 0 or center_x+col >= len(pixel_grid[0]):
+            if center_x+col-math.floor(len(kernel[0])/2) < 0 or center_x+col-math.floor(len(kernel[0])/2) >= len(pixel_grid[0]):
                 continue
             sum += pixel_grid[center_y+row-math.floor(len(kernel)/2)][center_x+col-math.floor(len(kernel[0])/2)] * kernel[row][col]
             # if center_y == 1 and center_x == 1:

@@ -2,6 +2,7 @@ from PIL import Image
 import numpy as np
 import sys
 import linear_filters
+import nonlinear_filters
 
 if len(sys.argv) > 2:
     src_path = sys.argv[1]
@@ -12,11 +13,15 @@ else:
 img = Image.open(src_path).convert("RGB")
 pixel_grid = np.array(img)
 
-# pixel_grid = kernels.gaussian(pixel_grid, 10)
+# edge_detection_kernel = np.array([
+#     [0, 1, 0],
+#     [1, -4, 1],
+#     [0, 1, 0]
+# ]) / 8
 
-# pixel_grid = kernels.apply_kernel_to_grid(pixel_grid, [[0.000453939978252691, 0.004849689877341308, 0.010681177840860335, 0.004849689877341308, 0.000453939978252691], [0.004849689877341308, 0.05181189812124092, 0.11411288393741639, 0.05181189812124092, 0.004849689877341308], [0.010681177840860335, 0.11411288393741639, 0.2513274122874845, 0.11411288393741639, 0.010681177840860335], [0.004849689877341308, 0.05181189812124092, 0.11411288393741639, 0.05181189812124092, 0.004849689877341308], [0.000453939978252691, 0.004849689877341308, 0.010681177840860335, 0.004849689877341308, 0.000453939978252691]])
+# pixel_grid = linear_filters.gaussian(pixel_grid, 9)
 
-pixel_grid = linear_filters.gaussian(pixel_grid, 7)
+pixel_grid = nonlinear_filters.bilateral(pixel_grid, 7)
 
 newimg = Image.fromarray(pixel_grid.astype(np.uint8))
 newimg.save(dest_path)
