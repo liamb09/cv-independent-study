@@ -1,5 +1,4 @@
 import math
-import cv2
 import numpy as np
 
 def apply_kernel_to_point (pixel_grid, kernel, center_x, center_y):

@@ -19,9 +19,9 @@ pixel_grid = np.array(img)
 #     [0, 1, 0]
 # ]) / 8
 
-# pixel_grid = linear_filters.gaussian(pixel_grid, 9)
+# pixel_grid = linear_filters.gaussian(pixel_grid, 13)
 
-pixel_grid = nonlinear_filters.bilateral(pixel_grid, 7)
+pixel_grid = nonlinear_filters.bilateral(pixel_grid, 2, 50)
 
 newimg = Image.fromarray(pixel_grid.astype(np.uint8))
 newimg.save(dest_path)
