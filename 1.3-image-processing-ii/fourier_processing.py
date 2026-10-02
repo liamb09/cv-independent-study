@@ -26,22 +26,26 @@ def hann (pixel_grid):
 def convolution_via_fourier (pixel_grid, kernel):
     pass
 
-if len(sys.argv) > 2:
+if len(sys.argv) > 3:
     src_path = sys.argv[1]
     dest_path = sys.argv[2]
+    inv_dest_path = sys.argv[3]
 else:
-    sys.exit("Please add command line arguments for source and destination image paths.")
+    sys.exit("Please add command line arguments for source, fft destination, and inv_ftt destination image paths.")
 
 img = Image.open(src_path).convert("RGB")
 pixel_grid = np.array(img)
 
-pixel_grid = hann(pixel_grid)
+# pixel_grid = hann(pixel_grid)
 
 # pixel_grid = []
 # for i in range(300):
 #     pixel_grid.append([])
 #     for j in range(300):
-#         pixel_grid[-1].append([255 * ((1 + math.cos(j))/2) * (1 + math.cos(j/10))/2 * (math.sin(math.pi*i/300)**2) * (math.sin(math.pi*j/300)**2)]*3)
+#         if 145 <= i <= 155 and 145 <= j <= 155:
+#             pixel_grid[-1].append([255, 255, 255])
+#         else:
+#             pixel_grid[-1].append([0, 0, 0])
 # pixel_grid = np.array(pixel_grid)
 
 # print(pixel_grid)
@@ -51,17 +55,29 @@ for row in range(len(pixel_grid)):
     for col in range(len(pixel_grid[row])):
         new_grid[row, col] = intensity(pixel_grid[row, col])
 
-new_grid = fft.fftshift(fft.fft2(new_grid))
-# print(new_grid)
-new_grid = np.abs(new_grid)
-# print(new_grid)
-new_grid = np.log(1 + new_grid)
-new_grid = (new_grid - np.min(new_grid)) / (np.max(new_grid) - np.min(new_grid))*255
-print(np.max(new_grid))
+new_grid = fft.fft2(new_grid)
+new_grid = fft.fftshift(new_grid)
 
-# print(new_grid[new_grid != 0])
+row_center = len(new_grid)//2
+col_center = len(new_grid[0])//2
+for row in range(len(new_grid)):
+    for col in range(len(new_grid[row])):
+        if math.sqrt((row - row_center)**2 + (col - col_center)**2) > 50:
+            new_grid[row, col] = 0
+
+display_new_grid = np.abs(new_grid)
+display_new_grid = np.log(1 + display_new_grid)
+display_new_grid = (display_new_grid - np.min(display_new_grid)) / (np.max(display_new_grid) - np.min(display_new_grid))*255
+print(np.max(display_new_grid))
+
+inv_new_grid = fft.ifftshift(new_grid)
+inv_new_grid = fft.ifft2(inv_new_grid)
+display_inv_new_grid = np.real(inv_new_grid)
 
 # print(to_freq_domain(pixel_grid, 10, 10))
 
-newimg = Image.fromarray(new_grid.astype(np.uint8))
+newimg = Image.fromarray(display_new_grid.astype(np.uint8))
 newimg.save(dest_path)
+
+newimg = Image.fromarray(display_inv_new_grid.astype(np.uint8))
+newimg.save(inv_dest_path)
