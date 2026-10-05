@@ -1,0 +1,1 @@
+Use ``rubiks_w_block_artifacts.jpg`` to show that if you do a low pass filter with a circle (with sharp edges, no fade), there will be blocky artifacts due to the sharp transition. Instead, use Gaussian smoothing.
