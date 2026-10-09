@@ -131,10 +131,10 @@ def remove_image_blur (pixel_grid, point_spread_func=None): # psf describes blur
 
     freq_psf = fft.fft2(point_spread_func)
     freq_psf_shifted = fft.fftshift(freq_psf)
-    display_new_grid = np.log(1 + np.abs(freq_psf_shifted))
-    display_new_grid = (display_new_grid - np.min(display_new_grid)) / (np.max(display_new_grid) - np.min(display_new_grid))*255
-    newimg = Image.fromarray(display_new_grid.astype(np.uint8))
-    newimg.save("gaussian_freq2.jpg")
+    # display_new_grid = np.log(1 + np.abs(freq_psf_shifted))
+    # display_new_grid = (display_new_grid - np.min(display_new_grid)) / (np.max(display_new_grid) - np.min(display_new_grid))*255
+    # newimg = Image.fromarray(display_new_grid.astype(np.uint8))
+    # newimg.save("gaussian_freq2.jpg")
 
     # noise to signal ratio, which describes the ratio of noise power to signal power (unknowable, so we set to constant)
     nsr = 0.03
@@ -144,10 +144,10 @@ def remove_image_blur (pixel_grid, point_spread_func=None): # psf describes blur
             # weiner deconvolution
             recovered_grid[row, col] = freq_og_img[row, col] * freq_psf_shifted[row, col].conjugate() / (nsr + abs(freq_psf_shifted[row, col])**2)
     
-    display_new_grid = np.log(1 + np.abs(recovered_grid))
-    display_new_grid = (display_new_grid - np.min(display_new_grid)) / (np.max(display_new_grid) - np.min(display_new_grid))*255
-    newimg = Image.fromarray(display_new_grid.astype(np.uint8))
-    newimg.save("gaussian_freq2.jpg")
+    # display_new_grid = np.log(1 + np.abs(recovered_grid))
+    # display_new_grid = (display_new_grid - np.min(display_new_grid)) / (np.max(display_new_grid) - np.min(display_new_grid))*255
+    # newimg = Image.fromarray(display_new_grid.astype(np.uint8))
+    # newimg.save("gaussian_freq2.jpg")
 
     recovered_grid = fft.ifftshift(fft.ifft2(fft.ifftshift(recovered_grid)))
 
