@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import math
 
 def to_greyscale (pixel_grid):
     new_grid = []
@@ -20,6 +21,25 @@ def neighbors (grid, row, col):
             ret.append(grid[row+dy][col+dx])
     
     return ret
+
+def gaussian (pixel_grid, kernel_size):
+    sigma = kernel_size / (2*math.pi) # standard deviation
+    variance = sigma ** 2
+
+    hor_kernel = np.array([[0 for i in range(kernel_size)]]).astype(float)
+    ver_kernel = np.array([[0] for i in range(kernel_size)]).astype(float)
+
+    for i in range(kernel_size):
+        val = math.e ** (-0.5 * ((i - math.floor(kernel_size/2))**2) / variance)
+        hor_kernel[0][i] = val / (2 * math.pi * variance)
+        ver_kernel[i][0] = val
+
+    # print(hor_kernel, "\n", ver_kernel)
+    
+    blurred = cv2.filter2D(pixel_grid, -1, hor_kernel)
+    blurred = cv2.filter2D(blurred, -1, ver_kernel)
+
+    return blurred
 
 kernels = {
     "prewitt": (
@@ -76,30 +96,43 @@ kernels = {
     )
 }
 
-def edges (pixel_grid, l_thresh=60, h_thresh=160, kernel_name="sobel_3x3"):
+def gradient_ed (pixel_grid, l_thresh=50, h_thresh=100, kernel_name="sobel_3x3"):
     kernel_x, kernel_y = kernels[kernel_name]
+
+    pixel_grid = gaussian(pixel_grid, 3)
 
     filtered = cv2.filter2D(pixel_grid, -1, kernel_x)
     filtered = to_greyscale(cv2.filter2D(filtered, -1, kernel_y))
 
+    # for row in range(len(filtered)):
+    #     for col in range(len(filtered[row])):
+    #         if filtered[row][col] >= h_thresh:
+    #             filtered[row][col] = 1
+    #         elif filtered[row][col] >= l_thresh:
+    #             filtered[row][col] = 0.5
+    #         else:
+    #             filtered[row][col] = 0
+    # for row in range(len(filtered)):
+    #     for col in range(len(filtered[row])):
+    #         if filtered[row][col] == 0.5:
+    #             if 1 in neighbors(filtered, row, col):
+    #                 filtered[row][col] = 1
+    #             else:
+    #                 filtered[row][col] = 0
+    # filtered *= 255
 
-    for row in range(len(filtered)):
-        for col in range(len(filtered[row])):
-            if filtered[row][col] >= h_thresh:
-                filtered[row][col] = 1
-            elif filtered[row][col] >= l_thresh:
-                filtered[row][col] = 0.5
-            else:
-                filtered[row][col] = 0
-    
-    for row in range(len(filtered)):
-        for col in range(len(filtered[row])):
-            if filtered[row][col] == 0.5:
-                if 1 in neighbors(filtered, row, col):
-                    filtered[row][col] = 1
-                else:
-                    filtered[row][col] = 0
-    
-    filtered *= 255
+    return filtered
+
+def laplacian_ed (pixel_grid):
+    laplacian_kernel = np.array([
+        [1, 4, 1],
+        [4, -20, 4],
+        [1, 4, 1]
+    ])
+
+    pixel_grid = gaussian(pixel_grid, 5)
+
+    filtered = cv2.filter2D(pixel_grid, -1, laplacian_kernel)
+    filtered = to_greyscale(filtered)
 
     return filtered
