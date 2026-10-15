@@ -104,22 +104,22 @@ def gradient_ed (pixel_grid, l_thresh=50, h_thresh=100, kernel_name="sobel_3x3")
     filtered = cv2.filter2D(pixel_grid, -1, kernel_x)
     filtered = to_greyscale(cv2.filter2D(filtered, -1, kernel_y))
 
-    # for row in range(len(filtered)):
-    #     for col in range(len(filtered[row])):
-    #         if filtered[row][col] >= h_thresh:
-    #             filtered[row][col] = 1
-    #         elif filtered[row][col] >= l_thresh:
-    #             filtered[row][col] = 0.5
-    #         else:
-    #             filtered[row][col] = 0
-    # for row in range(len(filtered)):
-    #     for col in range(len(filtered[row])):
-    #         if filtered[row][col] == 0.5:
-    #             if 1 in neighbors(filtered, row, col):
-    #                 filtered[row][col] = 1
-    #             else:
-    #                 filtered[row][col] = 0
-    # filtered *= 255
+    for row in range(len(filtered)):
+        for col in range(len(filtered[row])):
+            if filtered[row][col] >= h_thresh:
+                filtered[row][col] = 1
+            elif filtered[row][col] >= l_thresh:
+                filtered[row][col] = 0.5
+            else:
+                filtered[row][col] = 0
+    for row in range(len(filtered)):
+        for col in range(len(filtered[row])):
+            if filtered[row][col] == 0.5:
+                if 1 in neighbors(filtered, row, col):
+                    filtered[row][col] = 1
+                else:
+                    filtered[row][col] = 0
+    filtered *= 255
 
     return filtered
 
