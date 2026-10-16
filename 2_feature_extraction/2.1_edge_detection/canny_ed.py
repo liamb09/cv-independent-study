@@ -51,11 +51,9 @@ def canny_ed (pixel_grid, sigma):
     gradient_x = cv2.filter2D(smoothed, -1, sobel[0])
     gradient_y = cv2.filter2D(smoothed, -1, sobel[1])
 
-    # magnitude = np.sqrt(gradient_x**2 + gradient_y**2)
-
-    # display_image = cv2.normalize(
-    #     magnitude, None, 0, 255, cv2.NORM_MINMAX
-    # ).astype(np.uint8)
+    Ixx = cv2.Sobel(smoothed, cv2.CV_64F, 2, 0, ksize=3)
+    Iyy = cv2.Sobel(smoothed, cv2.CV_64F, 0, 2, ksize=3)
+    Ixy = cv2.Sobel(smoothed, cv2.CV_64F, 1, 1, ksize=3)
 
     # in multivariable calculus, derivative of a scalar-valued function f at P in the
     #   direction of m is equal to ∇f(P) * m/||m||. Here, ∇f = m = (I_x, I_y), where
@@ -67,21 +65,19 @@ def canny_ed (pixel_grid, sigma):
     for row in range(len(gradient_x)):
         gradient_laplacian.append([])
         for col in range(len(gradient_x[0])):
-            # gradient_mag = math.sqrt(
-            #     gradient_x[row][col]**2 + gradient_y[row][col]**2
-            # )
-            # gradient_orientation = math.atan(
-            #     gradient_y[row][col] / gradient_x[row][col]
-            # )
+            
 
-            gradient_laplacian[-1].append(
-                (
-                    gradient_x[row][col]**2 + 
-                    2*gradient_x[row][col]*gradient_y[row][col] +
-                    gradient_y[row][col]**2
-                ) / (gradient_x[row][col]**2 + gradient_y[row][col]**2)
-            )
+            if gradient_x[row][col] == gradient_y[row][col] == 0:
+                gradient_laplacian[-1].append(0)
+            else:
+                gradient_laplacian[-1].append(
+                    (
+                        gradient_x[row][col]**2 * Ixx[row][col] + 
+                        2*gradient_x[row][col]*gradient_y[row][col] * Ixy[row][col] +
+                        gradient_y[row][col]**2 * Iyy[row][col]
+                    ) / (gradient_x[row][col]**2 + gradient_y[row][col]**2)
+                )
     gradient_laplacian = np.array(gradient_laplacian)
-    print(gradient_laplacian)
+    # print(gradient_laplacian)
 
-    return gradient_x
+    return gradient_laplacian

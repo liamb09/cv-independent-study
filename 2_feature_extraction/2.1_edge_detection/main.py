@@ -16,7 +16,7 @@ else:
 img = Image.open(src_path).convert("RGB")
 pixel_grid = np.array(img)
 
-edges = canny_ed.canny_ed(pixel_grid, 2)
+edges = canny_ed.canny_ed(pixel_grid, 3)
 
 newimg = Image.fromarray(edges.astype(np.uint8))
 newimg.save(dest_path)
