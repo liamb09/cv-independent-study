@@ -70,6 +70,25 @@ def is_zero_crossing (pixel_grid, row, col):
     
     return 0
 
+def hysteresis_threshold (pixel_grid, high_threshold, low_threshold):
+    ret = np.zeros(pixel_grid.shape)
+
+    # identify certain edges (pixels whose brightness exceeds high_threshold)
+    for row in range(len(pixel_grid)):
+        for col in range(len(pixel_grid[0])):
+            if pixel_grid[row][col] >= high_threshold:
+                ret[row][col] = 1
+            elif pixel_grid[row][col] >= low_threshold:
+                ret[row][col] = 0.5
+
+    # promote candidate edges that are neighbors with certain edges
+    for row in range(len(pixel_grid)):
+        for col in range(len(pixel_grid[0])):
+            if ret[row][col] == 0.5:
+                ret[row][col] = 1 if (1 in neighbors(pixel_grid, row, col)) else 0
+
+    return ret * 255
+
 def canny_ed (pixel_grid, sigma):
 
     pixel_grid = to_greyscale(pixel_grid)
@@ -101,15 +120,20 @@ def canny_ed (pixel_grid, sigma):
                 )
     gradient_laplacian = np.array(gradient_laplacian)
 
-    ret = np.zeros(gradient_laplacian.shape)
+    zero_crossing_probability = np.zeros(gradient_laplacian.shape)
     for row in range(len(gradient_laplacian)):
         for col in range(len(gradient_laplacian[0])):
-            ret[row][col] = 255 if is_zero_crossing(gradient_laplacian, row, col) > 10 else 0
+            zero_crossing_probability[row][col] = is_zero_crossing(gradient_laplacian, row, col)
 
+    high_threshold = 3
+    low_threshold = 2
+
+    edges = hysteresis_threshold(zero_crossing_probability, low_threshold, high_threshold)
+    
     # gradient_laplacian = (gradient_laplacian - np.min(gradient_laplacian)) / (np.max(gradient_laplacian) - np.min(gradient_laplacian))*255
     # ret = np.zeros(gradient_laplacian.shape)
     # for row in range(len(gradient_laplacian)):
     #     for col in range(len(gradient_laplacian[0])):
     #         ret[row][col] = 255 if abs(gradient_laplacian[row][col] - 255*.4) < 30 else 0
 
-    return ret
+    return edges

@@ -18,7 +18,7 @@ pixel_grid = np.array(img)
 
 # edges = differential_ed.gradient_ed(pixel_grid)
 
-edges = canny_ed.canny_ed(pixel_grid, 4)
+edges = canny_ed.canny_ed(pixel_grid, 10)
 
 newimg = Image.fromarray(edges.astype(np.uint8))
 newimg.save(dest_path)
