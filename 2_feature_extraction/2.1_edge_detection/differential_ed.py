@@ -14,7 +14,7 @@ def to_greyscale (pixel_grid):
 
 def neighbors (grid, row, col):
     ret = []
-    directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (-1, 1), (-1, 0), (-1, 1)]
+    directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
     
     for dy, dx in directions:
         if 0 <= row+dy < len(grid) and 0 <= col+dx < len(grid[0]):

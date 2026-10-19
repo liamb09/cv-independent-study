@@ -44,7 +44,34 @@ def gaussian (pixel_grid, sigma):
 
     return blurred
 
+def neighbors (grid, row, col):
+    ret = []
+    #             0         1        2        3        4       5        6       7
+    directions = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    
+    for dy, dx in directions:
+        if 0 <= row+dy < len(grid) and 0 <= col+dx < len(grid[0]):
+            ret.append(grid[row+dy][col+dx])
+    
+    return ret
+
+def is_zero_crossing (pixel_grid, row, col):
+
+    if row == 0 or row == pixel_grid.shape[0]-1 or col == 0 or col == pixel_grid.shape[1]-1:
+        return False
+
+    p = pixel_grid[row][col]
+    n_p = neighbors(pixel_grid, row, col) # lb, l, lt, b, t, rb, r, rt
+
+    for n in n_p:
+        if n*p < 0:
+            # print(n, p)
+            return abs(n - p)
+    
+    return 0
+
 def canny_ed (pixel_grid, sigma):
+
     pixel_grid = to_greyscale(pixel_grid)
     smoothed = gaussian(pixel_grid, sigma)
 
@@ -53,11 +80,9 @@ def canny_ed (pixel_grid, sigma):
     I_x = cv2.filter2D(smoothed, cv2.CV_64F, sobel[0])
     I_y = cv2.filter2D(smoothed, cv2.CV_64F, sobel[1])
 
-
     I_xx = cv2.filter2D(I_x, cv2.CV_64F, sobel[0])
     I_xy = cv2.filter2D(I_x, cv2.CV_64F, sobel[1])
     I_yy = cv2.filter2D(I_y, cv2.CV_64F, sobel[1])
-    print(I_xx.dtype, np.min(I_xx), np.max(I_xx))
     
     gradient_laplacian = [] # the laplacians at each point in the gradient direction
     for row in range(len(I_x)):
@@ -76,7 +101,15 @@ def canny_ed (pixel_grid, sigma):
                 )
     gradient_laplacian = np.array(gradient_laplacian)
 
-    gradient_laplacian = (gradient_laplacian - np.min(gradient_laplacian)) / (np.max(gradient_laplacian) - np.min(gradient_laplacian))*255
-    print(np.min(gradient_laplacian), np.max(gradient_laplacian))
+    ret = np.zeros(gradient_laplacian.shape)
+    for row in range(len(gradient_laplacian)):
+        for col in range(len(gradient_laplacian[0])):
+            ret[row][col] = 255 if is_zero_crossing(gradient_laplacian, row, col) > 10 else 0
 
-    return gradient_laplacian
+    # gradient_laplacian = (gradient_laplacian - np.min(gradient_laplacian)) / (np.max(gradient_laplacian) - np.min(gradient_laplacian))*255
+    # ret = np.zeros(gradient_laplacian.shape)
+    # for row in range(len(gradient_laplacian)):
+    #     for col in range(len(gradient_laplacian[0])):
+    #         ret[row][col] = 255 if abs(gradient_laplacian[row][col] - 255*.4) < 30 else 0
+
+    return ret
