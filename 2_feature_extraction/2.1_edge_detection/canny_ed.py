@@ -48,36 +48,35 @@ def canny_ed (pixel_grid, sigma):
     pixel_grid = to_greyscale(pixel_grid)
     smoothed = gaussian(pixel_grid, sigma)
 
-    gradient_x = cv2.filter2D(smoothed, -1, sobel[0])
-    gradient_y = cv2.filter2D(smoothed, -1, sobel[1])
+    # here, "I" represents the image, and the subscripts represent the direction of
+    #   the partial derivative
+    I_x = cv2.filter2D(smoothed, cv2.CV_64F, sobel[0])
+    I_y = cv2.filter2D(smoothed, cv2.CV_64F, sobel[1])
 
-    Ixx = cv2.Sobel(smoothed, cv2.CV_64F, 2, 0, ksize=3)
-    Iyy = cv2.Sobel(smoothed, cv2.CV_64F, 0, 2, ksize=3)
-    Ixy = cv2.Sobel(smoothed, cv2.CV_64F, 1, 1, ksize=3)
 
-    # in multivariable calculus, derivative of a scalar-valued function f at P in the
-    #   direction of m is equal to ∇f(P) * m/||m||. Here, ∇f = m = (I_x, I_y), where
-    #   I_x and I_y are the partial derivatives of the image in the x and y direction
-    #   respectively. Therefore the laplacian along the gradient here is equal to
-    #   (I_x^2 + 2*I_x*I_y + I_y^2)/(I_x^2+I_y^2)
+    I_xx = cv2.filter2D(I_x, cv2.CV_64F, sobel[0])
+    I_xy = cv2.filter2D(I_x, cv2.CV_64F, sobel[1])
+    I_yy = cv2.filter2D(I_y, cv2.CV_64F, sobel[1])
+    print(I_xx.dtype, np.min(I_xx), np.max(I_xx))
     
     gradient_laplacian = [] # the laplacians at each point in the gradient direction
-    for row in range(len(gradient_x)):
+    for row in range(len(I_x)):
         gradient_laplacian.append([])
-        for col in range(len(gradient_x[0])):
-            
-
-            if gradient_x[row][col] == gradient_y[row][col] == 0:
+        for col in range(len(I_x[0])):
+            norm_magnitude = math.sqrt(I_x[row][col]**2 + I_y[row][col]**2)
+            if (abs(I_x[row][col]) < 0.000001 and abs(I_y[row][col]) < 0.000001) or norm_magnitude == 0:
                 gradient_laplacian[-1].append(0)
             else:
+                n_x = I_x[row][col] / norm_magnitude
+                n_y = I_y[row][col] / norm_magnitude
                 gradient_laplacian[-1].append(
-                    (
-                        gradient_x[row][col]**2 * Ixx[row][col] + 
-                        2*gradient_x[row][col]*gradient_y[row][col] * Ixy[row][col] +
-                        gradient_y[row][col]**2 * Iyy[row][col]
-                    ) / (gradient_x[row][col]**2 + gradient_y[row][col]**2)
+                    n_x**2 * I_xx[row][col] + 
+                    2*n_x*n_y * I_xy[row][col] +
+                    n_y**2 * I_yy[row][col]
                 )
     gradient_laplacian = np.array(gradient_laplacian)
-    # print(gradient_laplacian)
+
+    gradient_laplacian = (gradient_laplacian - np.min(gradient_laplacian)) / (np.max(gradient_laplacian) - np.min(gradient_laplacian))*255
+    print(np.min(gradient_laplacian), np.max(gradient_laplacian))
 
     return gradient_laplacian
