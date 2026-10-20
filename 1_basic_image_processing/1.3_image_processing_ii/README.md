@@ -1,4 +1,4 @@
-# Sprint 1.2
+# Sprint 1.3
 
 ## Deliverables
 * Notes on the Image Processing II subsection of First Principles of Computer Vision (`notes_1.3.pdf`)
