@@ -4,6 +4,7 @@ import sys
 from PIL import Image
 import numpy as np
 import active_contours
+import hough_transform
 
 if len(sys.argv) > 2:
     src_path = sys.argv[1]
@@ -19,11 +20,13 @@ else:
 # print(polynomial_coefficients)
 # print(" + ".join([f"{polynomial_coefficients[i]:.10f}x^{i}" for i in range(len(polynomial_coefficients))]))
 
-start_contour = [(671,519),(717,405),(708,246),(610,157),(419,133),(311,200),(282,342),(363,500),(570,540)]
-active_contours.uniformly_sample_contour(start_contour)
+# start_contour = [(671,519),(717,405),(708,246),(610,157),(419,133),(311,200),(282,342),(363,500),(570,540)]
+# active_contours.uniformly_sample_contour(start_contour)
 
-# img = Image.open(src_path).convert("RGB")
-# pixel_grid = np.array(img)
+img = Image.open(src_path).convert("RGB")
+pixel_grid = np.array(img)
 
-# newimg = Image.fromarray(gradient.astype(np.uint8))
-# newimg.save(dest_path)
+edges = hough_transform.detect_lines(pixel_grid, True)
+
+newimg = Image.fromarray(edges.astype(np.uint8))
+newimg.save(dest_path)

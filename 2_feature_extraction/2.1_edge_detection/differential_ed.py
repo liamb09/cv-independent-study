@@ -123,7 +123,7 @@ def gradient_ed (pixel_grid, l_thresh=50, h_thresh=100, kernel_name="sobel_3x3")
 
     return filtered
 
-def laplacian_ed (pixel_grid):
+def laplacian_ed (pixel_grid, l_thresh=50, h_thresh=100):
     laplacian_kernel = np.array([
         [1, 4, 1],
         [4, -20, 4],
@@ -134,5 +134,22 @@ def laplacian_ed (pixel_grid):
 
     filtered = cv2.filter2D(pixel_grid, -1, laplacian_kernel)
     filtered = to_greyscale(filtered)
+
+    for row in range(len(filtered)):
+        for col in range(len(filtered[row])):
+            if filtered[row][col] >= h_thresh:
+                filtered[row][col] = 1
+            elif filtered[row][col] >= l_thresh:
+                filtered[row][col] = 0.5
+            else:
+                filtered[row][col] = 0
+    for row in range(len(filtered)):
+        for col in range(len(filtered[row])):
+            if filtered[row][col] == 0.5:
+                if 1 in neighbors(filtered, row, col):
+                    filtered[row][col] = 1
+                else:
+                    filtered[row][col] = 0
+    filtered *= 255
 
     return filtered
