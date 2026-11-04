@@ -17,8 +17,21 @@ def to_greyscale (pixel_grid):
 
     return np.array(new_grid)
 
+def fetch_window (pixel_grid, row, col, window_size):
+    ret = []
+    for i in range(window_size):
+        for j in range(window_size):
+            # exclude point at (row, col)
+            if i == window_size//2 and j == window_size//2:
+                break
+            row_idx = row - window_size//2 + i
+            col_idx = col - window_size//2 + j
+            if 0 <= row_idx < len(pixel_grid) and 0 <= col_idx < len(pixel_grid[0]):
+                ret.append(pixel_grid[row_idx][col_idx])
+    return ret
+
 def detect_lines (pixel_grid, use_laplacian=False):
-    og_grid = pixel_grid
+    og_grid = pixel_grid.copy()
     if use_laplacian:
         edges = differential_ed.laplacian_ed(pixel_grid, 30, 100)
     else:
@@ -26,10 +39,10 @@ def detect_lines (pixel_grid, use_laplacian=False):
 
     pixel_grid = to_greyscale(pixel_grid)
 
-    img_w, img_h = pixel_grid.shape
+    img_h, img_w = pixel_grid.shape
     max_rho = math.floor(math.sqrt(img_w**2 + img_h**2))
     rho_interval = 5
-    theta_interval = 0.05
+    theta_interval = 0.04
 
     accumulator_array = np.zeros((math.floor(math.pi / theta_interval), math.floor(2*max_rho / rho_interval)))
     for row in range(len(edges)):
@@ -37,16 +50,28 @@ def detect_lines (pixel_grid, use_laplacian=False):
             if edges[row][col] > 0:
                 for i in range(len(accumulator_array)):
                     theta = i*theta_interval
-                    vote = col*math.sin(theta) - row*math.cos(theta)
+                    vote = -(col*math.sin(theta) - row*math.cos(theta))
                     rho_index = round((vote + max_rho) / rho_interval)
                     accumulator_array[i][rho_index] += 1
-    threshold = 0.5*np.max(accumulator_array)
+
+    # threshold with non-maximal suppression
+    window_size = 13
+    thresholded_array = np.zeros(accumulator_array.shape)
     for i in range(len(accumulator_array)):
         for j in range(len(accumulator_array[i])):
-            if accumulator_array[i][j] > threshold:
+            window = fetch_window(accumulator_array, i, j, window_size)
+            if accumulator_array[i][j] >= max(window):
+                thresholded_array[i][j] = accumulator_array[i][j]
+    
+    # thresholded_array = (thresholded_array - np.min(thresholded_array))/(np.max(thresholded_array) - np.min(thresholded_array))*255
+
+    threshold = 0.5*np.max(thresholded_array)
+    for i in range(len(thresholded_array)):
+        for j in range(len(thresholded_array[i])):
+            if thresholded_array[i][j] > threshold:
                 rho = j*rho_interval - max_rho
                 theta = i*theta_interval
-                # print(accumulator_array[i][j], theta, rho)
+                print(thresholded_array[i][j], theta, rho)
                 cv2.line(
                     og_grid,
                     (0, int(rho/math.cos(theta))),
@@ -56,3 +81,47 @@ def detect_lines (pixel_grid, use_laplacian=False):
                 )
 
     return og_grid
+
+def detect_circles (pixel_grid, radius, use_laplacian=False):
+    og_grid = pixel_grid
+    if use_laplacian:
+        edges = differential_ed.laplacian_ed(pixel_grid, 30, 100)
+    else:
+        edges = canny_ed.canny_ed(pixel_grid, 5)
+
+    pixel_grid = to_greyscale(pixel_grid)
+
+    img_h, img_w = pixel_grid.shape
+    print(img_h, img_w)
+    interval = 5
+    accumulator_array = np.zeros((math.floor(img_h/interval), math.floor(img_w/interval)))
+    for row in range(len(edges)):
+        for col in range(len(edges[row])):
+            if edges[row][col] > 0:
+                for i in range(radius*2):
+                    x = i - radius
+                    
+                    y = row + math.sqrt(radius**2 - x**2)
+                    if 0 <= round((x+col) / interval) < len(accumulator_array[0]) and 0 <= round((y+row) / interval) < len(accumulator_array):
+                        accumulator_array[round((y+row) / interval)][round((x+col) / interval)] += 1
+
+                    y = row - math.sqrt(radius**2 - x**2)
+                    if 0 <= round((x+col) / interval) < len(accumulator_array[0]) and 0 <= round((y+row) / interval) < len(accumulator_array):
+                        accumulator_array[round((y+row) / interval)][round((x+col) / interval)] += 1
+    
+    # threshold with non-maximal suppression
+    # thresholded_array = accumulator_array
+    window_size = 5
+    thresholded_array = np.zeros(accumulator_array.shape)
+    for i in range(len(accumulator_array)):
+        for j in range(len(accumulator_array[i])):
+            window = fetch_window(accumulator_array, i, j, window_size)
+            if accumulator_array[i][j] >= max(window):
+                thresholded_array[i][j] = accumulator_array[i][j]
+    
+    thresholded_array = (thresholded_array - np.min(thresholded_array))/(np.max(thresholded_array) - np.min(thresholded_array))*255
+
+    return thresholded_array
+
+# 212-215
+# 170-177

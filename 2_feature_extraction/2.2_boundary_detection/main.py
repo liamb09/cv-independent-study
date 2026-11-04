@@ -11,7 +11,7 @@ if len(sys.argv) > 2:
     dest_path = sys.argv[2]
 elif len(sys.argv) > 1:
     src_path = sys.argv[1]
-    dest_path = "gradient.jpg"
+    dest_path = "boundaries.jpg"
 else:
     sys.exit("Please add command line arguments for source and destination image paths.")
 
@@ -26,7 +26,8 @@ else:
 img = Image.open(src_path).convert("RGB")
 pixel_grid = np.array(img)
 
-edges = hough_transform.detect_lines(pixel_grid, True)
+# lines = hough_transform.detect_lines(pixel_grid)
+circles = hough_transform.detect_circles(pixel_grid, 174)
 
-newimg = Image.fromarray(edges.astype(np.uint8))
+newimg = Image.fromarray(circles.astype(np.uint8))
 newimg.save(dest_path)
