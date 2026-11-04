@@ -71,7 +71,6 @@ def detect_lines (pixel_grid, use_laplacian=False):
             if thresholded_array[i][j] > threshold:
                 rho = j*rho_interval - max_rho
                 theta = i*theta_interval
-                print(thresholded_array[i][j], theta, rho)
                 cv2.line(
                     og_grid,
                     (0, int(rho/math.cos(theta))),
@@ -92,7 +91,6 @@ def detect_circles (pixel_grid, radius, use_laplacian=False):
     pixel_grid = to_greyscale(pixel_grid)
 
     img_h, img_w = pixel_grid.shape
-    print(img_h, img_w)
     interval = 5
     accumulator_array = np.zeros((math.floor(img_h/interval), math.floor(img_w/interval)))
     for row in range(len(edges)):
@@ -110,18 +108,34 @@ def detect_circles (pixel_grid, radius, use_laplacian=False):
                         accumulator_array[round((y+row) / interval)][round((x+col) / interval)] += 1
     
     # threshold with non-maximal suppression
-    # thresholded_array = accumulator_array
-    window_size = 5
-    thresholded_array = np.zeros(accumulator_array.shape)
-    for i in range(len(accumulator_array)):
-        for j in range(len(accumulator_array[i])):
-            window = fetch_window(accumulator_array, i, j, window_size)
-            if accumulator_array[i][j] >= max(window):
-                thresholded_array[i][j] = accumulator_array[i][j]
+    thresholded_array = accumulator_array
+    # window_size = 11
+    # thresholded_array = np.zeros(accumulator_array.shape)
+    # for i in range(len(accumulator_array)):
+    #     for j in range(len(accumulator_array[i])):
+    #         window = fetch_window(accumulator_array, i, j, window_size)
+    #         if accumulator_array[i][j] >= max(window):
+    #             thresholded_array[i][j] = accumulator_array[i][j]
     
     thresholded_array = (thresholded_array - np.min(thresholded_array))/(np.max(thresholded_array) - np.min(thresholded_array))*255
 
+    threshold = 0.8*np.max(thresholded_array)
+    for i in range(len(thresholded_array)):
+        for j in range(len(thresholded_array[i])):
+            if thresholded_array[i][j] > threshold:
+                x = j * interval
+                y = i * interval
+                print(thresholded_array[i][j])
+                cv2.circle(
+                    og_grid,
+                    (x, y),
+                    radius,
+                    (255, 0, 0),
+                    2
+                )
+
     return thresholded_array
 
-# 212-215
-# 170-177
+# 180     : 90
+# 170-177 : 88
+# 212-215 : 107
