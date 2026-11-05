@@ -141,5 +141,4 @@ def detect_circles (pixel_grid, radius, use_laplacian=False):
     return og_grid
 
 # 180     : 90
-# 170-177 : 88
-# 212-215 : 107
+# 212-215 : 106
