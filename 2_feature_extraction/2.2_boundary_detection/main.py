@@ -27,7 +27,7 @@ img = Image.open(src_path).convert("RGB")
 pixel_grid = np.array(img)
 
 # lines = hough_transform.detect_lines(pixel_grid)
-circles = hough_transform.detect_circles(pixel_grid, 110)
+circles = hough_transform.detect_circles(pixel_grid, 65)
 
 newimg = Image.fromarray(circles.astype(np.uint8))
 newimg.save(dest_path)

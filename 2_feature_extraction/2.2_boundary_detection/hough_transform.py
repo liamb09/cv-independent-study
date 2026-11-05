@@ -1,8 +1,8 @@
 import sys
 sys.path.insert(0, '../2.1_edge_detection/')
 
-import canny_ed
-import differential_ed
+import canny_ed # type: ignore
+import differential_ed # type: ignore
 import math
 import numpy as np
 import cv2
@@ -92,40 +92,44 @@ def detect_circles (pixel_grid, radius, use_laplacian=False):
 
     img_h, img_w = pixel_grid.shape
     interval = 5
-    accumulator_array = np.zeros((math.floor(img_h/interval), math.floor(img_w/interval)))
+    accumulator_array = np.zeros((math.ceil(img_h/interval), math.ceil(img_w/interval)))
     for row in range(len(edges)):
         for col in range(len(edges[row])):
             if edges[row][col] > 0:
-                for i in range(radius*2):
+                for i in range(radius*2 + 1):
                     x = i - radius
                     
                     y = row + math.sqrt(radius**2 - x**2)
-                    if 0 <= round((x+col) / interval) < len(accumulator_array[0]) and 0 <= round((y+row) / interval) < len(accumulator_array):
-                        accumulator_array[round((y+row) / interval)][round((x+col) / interval)] += 1
+                    if 0 <= round((x+col) / interval) < len(accumulator_array[0]) and 0 <= round(y / interval) < len(accumulator_array):
+                        accumulator_array[round(y / interval)][round((x+col) / interval)] += 1
+
+                    # don't double-count leftmost and rightmost points of circle
+                    if abs(x) == radius:
+                        continue
 
                     y = row - math.sqrt(radius**2 - x**2)
-                    if 0 <= round((x+col) / interval) < len(accumulator_array[0]) and 0 <= round((y+row) / interval) < len(accumulator_array):
-                        accumulator_array[round((y+row) / interval)][round((x+col) / interval)] += 1
+                    if 0 <= round((x+col) / interval) < len(accumulator_array[0]) and 0 <= round(y / interval) < len(accumulator_array):
+                        accumulator_array[round(y / interval)][round((x+col) / interval)] += 1
     
     # threshold with non-maximal suppression
-    thresholded_array = accumulator_array
-    # window_size = 11
-    # thresholded_array = np.zeros(accumulator_array.shape)
-    # for i in range(len(accumulator_array)):
-    #     for j in range(len(accumulator_array[i])):
-    #         window = fetch_window(accumulator_array, i, j, window_size)
-    #         if accumulator_array[i][j] >= max(window):
-    #             thresholded_array[i][j] = accumulator_array[i][j]
+    # thresholded_array = accumulator_array
+    window_size = 11
+    thresholded_array = np.zeros(accumulator_array.shape)
+    for i in range(len(accumulator_array)):
+        for j in range(len(accumulator_array[i])):
+            window = fetch_window(accumulator_array, i, j, window_size)
+            if accumulator_array[i][j] >= max(window):
+                thresholded_array[i][j] = accumulator_array[i][j]
     
-    thresholded_array = (thresholded_array - np.min(thresholded_array))/(np.max(thresholded_array) - np.min(thresholded_array))*255
+    # thresholded_array = (thresholded_array - np.min(thresholded_array))/(np.max(thresholded_array) - np.min(thresholded_array))*255
 
-    threshold = 0.8*np.max(thresholded_array)
+    threshold = 0.9*np.max(thresholded_array)
     for i in range(len(thresholded_array)):
         for j in range(len(thresholded_array[i])):
             if thresholded_array[i][j] > threshold:
                 x = j * interval
                 y = i * interval
-                print(thresholded_array[i][j])
+                # print(thresholded_array[i][j])
                 cv2.circle(
                     og_grid,
                     (x, y),
@@ -134,7 +138,7 @@ def detect_circles (pixel_grid, radius, use_laplacian=False):
                     2
                 )
 
-    return thresholded_array
+    return og_grid
 
 # 180     : 90
 # 170-177 : 88
