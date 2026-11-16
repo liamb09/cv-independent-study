@@ -1,10 +1,10 @@
 import cv2
 import numpy as np
-import video_processing
+import video_io
 
 def remove_bg (src_path, dest_path):
     frame_interval = 0.05
-    frames = video_processing.extract_greyscale_frames(src_path, frame_interval)
+    frames = video_io.extract_greyscale_frames(src_path, frame_interval)
 
     first_frame = cv2.GaussianBlur(frames[0].astype(np.int16), (5, 5), 0)
 
@@ -17,4 +17,4 @@ def remove_bg (src_path, dest_path):
                     
     frames[0] = np.zeros(frames[0].shape)
 
-    video_processing.write_video(dest_path, frames, 1/frame_interval)
+    video_io.write_video(dest_path, frames, 1/frame_interval)
