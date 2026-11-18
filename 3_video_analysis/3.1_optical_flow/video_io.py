@@ -16,7 +16,7 @@ def extract_greyscale_frames (video_path, frame_interval, start_time=0, num_fram
         if i >= first_frame_idx and (i-first_frame_idx) % frame_modulus == 0:
             # convert from BGR to RGB
             greyscale_grid = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            frames.append(greyscale_grid)
+            frames.append(greyscale_grid.astype(np.float32))
 
         i += 1
 
